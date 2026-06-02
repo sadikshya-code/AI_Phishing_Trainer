@@ -1,173 +1,156 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Cyber Threat Intelligence Dashboard</title>
+    <title>AI Phishing Trainer</title>
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial;
-      background: #070b14;
-      color: white;
-      display: flex;
-    }
+    <style>
+        body{
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 30px;
+        }
 
-    /* LEFT PANEL */
-    .left {
-      width: 35%;
-      height: 100vh;
-      background: #0f172a;
-      padding: 25px;
-      box-sizing: border-box;
-      border-right: 1px solid #1f2937;
-    }
+        .container{
+            background: white;
+            max-width: 700px;
+            margin: auto;
+            padding: 20px;
+            border-radius: 10px;
+        }
 
-    /* RIGHT PANEL */
-    .right {
-      width: 65%;
-      padding: 25px;
-      box-sizing: border-box;
-    }
+        .email-box{
+            background: #eef3ff;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 8px;
+            text-align: left;
+        }
 
-    h2 {
-      margin-top: 0;
-    }
+        button{
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+        }
 
-    input {
-      width: 100%;
-      padding: 12px;
-      border-radius: 8px;
-      border: none;
-      margin-top: 10px;
-      background: #1e293b;
-      color: white;
-    }
+        #result{
+            margin-top: 20px;
+            font-weight: bold;
+        }
 
-    button {
-      width: 100%;
-      margin-top: 15px;
-      padding: 12px;
-      border: none;
-      border-radius: 8px;
-      background: #2563eb;
-      color: white;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    .panel {
-      background: #111827;
-      padding: 15px;
-      border-radius: 10px;
-      margin-bottom: 10px;
-      border-left: 4px solid #334155;
-    }
-
-    .safe { border-left-color: #22c55e; }
-    .warn { border-left-color: #f59e0b; }
-    .danger { border-left-color: #ef4444; }
-
-    .title {
-      font-size: 14px;
-      color: #94a3b8;
-    }
-
-    .value {
-      margin-top: 5px;
-      font-size: 14px;
-    }
-
-    .score {
-      font-size: 28px;
-      font-weight: bold;
-      margin-top: 10px;
-    }
-  </style>
+        #score{
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 
 <body>
 
-<!-- LEFT SIDE -->
-<div class="left">
-  <h2>🛡️ URL Threat Scanner</h2>
-  <p class="title">Enter URL for deep analysis</p>
+<div class="container">
 
-  <input type="text" id="url" placeholder="https://example.com">
+    <h1>🤖 AI Phishing Trainer</h1>
 
-  <button onclick="scan()">Run Analysis</button>
+    <p>
+        Practice identifying phishing emails and improve your cybersecurity awareness.
+    </p>
 
-  <div class="score" id="score">0/100</div>
-</div>
+    <div id="score">
+        Score: 0
+    </div>
 
-<!-- RIGHT SIDE -->
-<div class="right">
-  <h3>📊 Security Report</h3>
+    <div class="email-box" id="email">
+        Click Start Training to begin.
+    </div>
 
-  <div id="report"></div>
+    <br>
+
+    <button onclick="startTraining()">Start Training</button>
+
+    <button onclick="checkAnswer('safe')">
+        Safe
+    </button>
+
+    <button onclick="checkAnswer('phishing')">
+        Phishing
+    </button>
+
+    <div id="result"></div>
+
 </div>
 
 <script>
-  function scan() {
-    let url = document.getElementById("url").value.toLowerCase();
-    let report = document.getElementById("report");
-    let scoreBox = document.getElementById("score");
 
-    let score = 100;
-    let logs = [];
+let score = 0;
+let currentAnswer = "";
 
-    // SECURITY RULES
-    if (!url.startsWith("https")) {
-      score -= 25;
-      logs.push(["⚠ Protocol Risk", "No HTTPS encryption detected"]);
-    }
+const emails = [
 
-    if (url.includes("@")) {
-      score -= 20;
-      logs.push(["⚠ Obfuscation", "URL contains '@' symbol"]);
-    }
+{
+text:
+"From: security@your-bank.com\n\nYour account has been locked. Click here immediately to verify your password.",
+answer: "phishing"
+},
 
-    if (url.length > 80) {
-      score -= 10;
-      logs.push(["⚠ Structure Risk", "Unusually long URL"]);
-    }
+{
+text:
+"From: teacher@school.edu\n\nReminder: Assignment is due on Friday.",
+answer: "safe"
+},
 
-    if (url.includes("login") || url.includes("verify")) {
-      score -= 20;
-      logs.push(["⚠ Phishing Pattern", "Suspicious keyword detected"]);
-    }
+{
+text:
+"From: support@amaz0n-login.com\n\nYour account will be suspended unless you verify now.",
+answer: "phishing"
+},
 
-    if (url.includes("bit.ly") || url.includes("tinyurl")) {
-      score -= 20;
-      logs.push(["⚠ Hidden Redirect", "URL shortener detected"]);
-    }
+{
+text:
+"From: library@college.edu\n\nThe library will close at 5 PM today.",
+answer: "safe"
+}
 
-    if (logs.length === 0) {
-      logs.push(["✔ Clean Result", "No threats detected"]);
-    }
+];
 
-    // SCORE DISPLAY
-    scoreBox.innerText = score + "/100";
+function startTraining(){
 
-    // CLEAR REPORT
-    report.innerHTML = "";
+let randomEmail =
+emails[Math.floor(Math.random() * emails.length)];
 
-    // BUILD DASHBOARD
-    logs.forEach(l => {
-      let div = document.createElement("div");
-      div.className = "panel";
+document.getElementById("email").innerText =
+randomEmail.text;
 
-      if (score > 70) div.classList.add("safe");
-      else if (score > 40) div.classList.add("warn");
-      else div.classList.add("danger");
+currentAnswer = randomEmail.answer;
 
-      div.innerHTML = `
-        <div class="title">${l[0]}</div>
-        <div class="value">${l[1]}</div>
-      `;
+document.getElementById("result").innerText = "";
 
-      report.appendChild(div);
-    });
-  }
+}
+
+function checkAnswer(userAnswer){
+
+if(currentAnswer === ""){
+return;
+}
+
+if(userAnswer === currentAnswer){
+
+score++;
+
+document.getElementById("result").innerText =
+"✅ Correct!";
+
+}else{
+
+document.getElementById("result").innerText =
+"❌ Incorrect. Be careful with suspicious emails.";
+
+}
+
+document.getElementById("score").innerText =
+"Score: " + score;
+
+}
+
 </script>
 
 </body>
